@@ -7,6 +7,8 @@ import Enums.PaperTypeEnum;
 import Printing.Paper;
 import Employees.Employee;
 
+import Exception.CustomCheckedException;
+
 import Printing.PrintingHouse;
 import Printing.PrintingMachine;
 import Printing.Publication;
@@ -51,7 +53,7 @@ public class UnitTests {
         PrintingMachine machine = new PrintingMachine(1000, MachineColorModeEnum.COLOR);
         try {
             machine.loadPaper(500);
-        } catch (Exception e) {
+        } catch (CustomCheckedException e) {
             fail("Exception should not be thrown.");
         }
         assertEquals(500, machine.getTotalLoadedPages());
@@ -61,11 +63,12 @@ public class UnitTests {
     public void testPrintingMachinePrint() {
         PrintingMachine machine = new PrintingMachine(1000, MachineColorModeEnum.COLOR);
         Paper paper = new Paper(PaperTypeEnum.NEWSPAPER, PaperSizeEnum.A4);
-        Publication publication = new Publication("Sample Book", 100, paper);
+        Publication publication = new Publication("Sample Book", 100);
+        publication.setPaper(paper);
         try {
             machine.loadPaper(1000);
             machine.printPublication(publication, 5, MachineColorModeEnum.COLOR);
-        } catch (Exception e) {
+        } catch (CustomCheckedException e) {
             fail("Exception should not be thrown.");
         }
         assertEquals(500, machine.getTotalPrintedPages());
@@ -78,65 +81,77 @@ public class UnitTests {
         Paper paper = new Paper(PaperTypeEnum.REGULAR, PaperSizeEnum.A4);
         printingHouse.addMachine(machine);
 
-        Publication publication = new Publication("Sample Book", 100, paper);
+        Publication publication = new Publication("Sample Book", 100);
+        publication.setPaper(paper);
 
         try {
             machine.loadPaper(1000);
             machine.printPublication(publication, 5, MachineColorModeEnum.COLOR);
-        } catch (Exception e) {
+        } catch (CustomCheckedException e) {
             fail("Exception should not be thrown.");
         }
 
-        assertEquals(50.0, printingHouse.calculateExpenses(printingHouse.getPublications()));  // 500 pages * 0.15 per sheet
+        assertEquals(50.0, printingHouse.calculateExpenses());  // 500 pages * 0.15 per sheet
     }
 
     @Test
     public void testCalculateRevenue() {
         PrintingHouse printingHouse = new PrintingHouse();
         Paper paper = new Paper(PaperTypeEnum.REGULAR, PaperSizeEnum.A4);
-        Publication publication = new Publication("Sample Book", 100, paper);
+        Publication publication = new Publication("Sample Book", 100);
+        publication.setPaper(paper);
 
         double revenue = printingHouse.calculateRevenue(10, 0);
-        assertEquals(50.0, revenue, 0.001);
+        assertEquals(100.00, revenue, 0.001);
 
         revenue = printingHouse.calculateRevenue(10, 10);
-        assertEquals(95.0, revenue, 0.001);
+        assertEquals(190.0, revenue, 0.001);
     }
 
     @Test
-    public void testSaveToFile() throws IOException {
+    public void testSaveToFile() throws CustomCheckedException {
         PrintingHouse printingHouse = new PrintingHouse();
         Paper paper = new Paper(PaperTypeEnum.REGULAR, PaperSizeEnum.A4);
-        Publication publication1 = new Publication("Sample Book", 100, paper);
-        Publication publication2 = new Publication("Sample Magazine", 50, paper);
+        Publication publication1 = new Publication("Sample Book", 100);
+        publication1.setPaper(paper);
+        Publication publication2 = new Publication("Sample Magazine", 50);
+        publication2.setPaper(paper);
 
         printingHouse.addPublication(publication1);
         printingHouse.addPublication(publication2);
 
         printingHouse.calculateRevenue(10, 0);
-        printingHouse.calculateExpenses(printingHouse.getPublications());
+        printingHouse.calculateExpenses();
 
         String filename = "test_output.txt";
         printingHouse.saveToFile(filename);
 
-        List<String> lines = Files.readAllLines(Paths.get(filename));
-        assertEquals("Revenue: 50.0", lines.get(0));
-        assertTrue(lines.get(1).startsWith("Expenses: "));
-        assertEquals("Sample Book, 100 pages", lines.get(2));
-        assertEquals("Sample Magazine, 50 pages", lines.get(3));
+        try {
+            List<String> lines = Files.readAllLines(Paths.get(filename));
+            assertEquals("Revenue: 100.00", lines.get(0));
+            assertTrue(lines.get(1).startsWith("Expenses: "));
+            assertEquals("Sample Book, 100 pages", lines.get(2));
+            assertEquals("Sample Magazine, 50 pages", lines.get(3));
 
-        // Clean up
-        Files.delete(Paths.get(filename));
+            // Clean up
+            Files.delete(Paths.get(filename));
+        }
+        catch (IOException e){
+            throw new CustomCheckedException(e.getMessage());
+        }
     }
 
     @Test
-    public void testLoadFromFile() throws IOException {
+    public void testLoadFromFile() throws CustomCheckedException, IOException {
         String filename = "test_input.txt";
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename))) {
             writer.write("Revenue: 100.0\n");
             writer.write("Expenses: 50.0\n");
             writer.write("Sample Book, 100 pages\n");
             writer.write("Sample Magazine, 50 pages\n");
+        }
+        catch (IOException e){
+            throw new CustomCheckedException(e.getMessage());
         }
 
         PrintingHouse printingHouse = new PrintingHouse();

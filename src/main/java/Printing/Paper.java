@@ -25,8 +25,7 @@ public class Paper {
     private double calculatePrice() {
         double basePrice = paperType.getBasePrice();
         double multiplier = paperSize.getSizeMultiplier();
-        double price = basePrice * multiplier;
-        return Math.round(price * 100.0) / 100.0;
+        return basePrice * multiplier;
     }
 
     public double getPricePerSheet() {

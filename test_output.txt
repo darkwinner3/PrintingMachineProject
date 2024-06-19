@@ -1,0 +1,4 @@
+Revenue: 99.43
+Expenses: 6525.00
+Sample Book, 350 pages
+Sample Magazine, 100 pages

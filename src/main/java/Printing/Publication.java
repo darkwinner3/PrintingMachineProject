@@ -8,10 +8,10 @@ public class Publication {
     private Paper paper;
     private int copyCount;
 
-    public Publication(String title, int numPages, Paper paper) {
+    public Publication(String title, int numPages) {
         this.title = title;
         this.numPages = numPages;
-        this.paper = paper;
+        this.paper = null;
         this.copyCount = 0;
     }
 
@@ -29,6 +29,14 @@ public class Publication {
 
     public int getCopyCount(){
         return copyCount;
+    }
+
+    public void setPublicationCopyCount(int copyCount){
+        this.copyCount = copyCount;
+    }
+
+    public void setPaper(Paper paper){
+        this.paper = paper;
     }
 }
 

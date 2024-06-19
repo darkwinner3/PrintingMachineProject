@@ -1,8 +1,10 @@
 package Printing;
 
 import Employees.Employee;
+import Employees.Manager;
 import Enums.PaperSizeEnum;
 import Enums.PaperTypeEnum;
+import Exception.CustomCheckedException;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -13,16 +15,16 @@ public class PrintingHouse {
     private List<PrintingMachine> machines;
     private List<Publication> publications;
     private List<Paper> papers;
-    double expenses;
-    double revenue;
+    private double expenses;
+    private double revenue;
 
     public PrintingHouse() {
         this.employees = new ArrayList<>();
         this.machines = new ArrayList<>();
         this.publications = new ArrayList<>();
         this.papers = new ArrayList<>();
-        this.expenses = 0;
-        this.revenue = 0;
+        this.expenses = 0.0;
+        this.revenue = 0.0;
     }
 
     public void addEmployee(Employee employee) {
@@ -43,29 +45,31 @@ public class PrintingHouse {
 
     public double calculateExpenses() {
         double salaryExpenses = employees.stream().mapToDouble(Employee::getSalary).sum();
-        double paperExpenses = machines.stream().mapToDouble(PrintingMachine::calculatePaperCosts()).sum();
+        double paperExpenses = machines.stream().mapToDouble(PrintingMachine::calculatePaperCosts).sum();
         this.expenses = salaryExpenses + paperExpenses;
         return this.expenses;
     }
 
     public double calculateRevenue(int copies, double discount) {
-        double pricePerCopy = 5; // Example price per copy
+        double pricePerCopy = 10; // Example price per copy
         double totalRevenue = copies * pricePerCopy * (1 - discount / 100);
         this.revenue += totalRevenue;
-        return this.revenue;
+        return Double.parseDouble(String.format("%.2f", this.revenue));
     }
 
-    public void saveToFile(String filename) throws IOException {
+    public void saveToFile(String filename) throws CustomCheckedException {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename))) {
-            writer.write("Revenue: " + this.revenue + "\n");
-            writer.write("Expenses: " + this.expenses + "\n");
+            writer.write("Revenue: " + String.format("%.2f", this.revenue) + "\n");
+            writer.write("Expenses: " + String.format("%.2f", this.expenses) + "\n");
             for (Publication publication : publications) {
                 writer.write(publication.getTitle() + ", " + publication.getNumPages() + " pages\n");
             }
+        }catch (IOException e){
+            throw new CustomCheckedException("Could not save data to file: " + e.getMessage());
         }
     }
 
-    public void loadFromFile(String filename) throws IOException {
+    public void loadFromFile(String filename) throws CustomCheckedException {
         try (BufferedReader reader = new BufferedReader(new FileReader(filename))) {
             this.revenue = Double.parseDouble(reader.readLine().split(": ")[1]);
             this.expenses = Double.parseDouble(reader.readLine().split(": ")[1]);
@@ -74,15 +78,25 @@ public class PrintingHouse {
                 String[] parts = line.split(", ");
                 String title = parts[0];
                 int pages = Integer.parseInt(parts[1].split(" ")[0]);
-                Paper paper = new Paper(PaperTypeEnum.REGULAR, PaperSizeEnum.A4);
-                Publication publication = new Publication(title, pages, paper);
+                Publication publication = new Publication(title, pages);
                 this.publications.add(publication);
             }
         }
+        catch (IOException e){
+            throw new CustomCheckedException("Could not load data from file: " + e.getMessage());
+        }
     }
 
-    public List<Employee> getEmployees(){
-        return employees;
+    public List<Manager> getManagers(){
+        List<Manager> managers = new ArrayList<>();
+
+        for (Employee employee : employees){
+            if (employee instanceof Manager){
+                managers.add((Manager) employee);
+            }
+        }
+
+        return managers;
     }
 
     public double getRevenue() {

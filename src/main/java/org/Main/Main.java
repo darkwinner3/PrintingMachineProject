@@ -2,14 +2,14 @@ package org.Main;
 
 import InputData.InputData;
 import Printing.PrintingHouse;
+import Exception.CustomCheckedException;
 
 public class Main {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws CustomCheckedException {
         PrintingHouse printingHouse = new PrintingHouse();
         InputData inputData = new InputData();
 
-        // Initialize the printing house
         inputData.initializePrintingHouse(printingHouse);
 
         // Simulate the printing house operations
